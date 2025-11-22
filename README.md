@@ -1,6 +1,6 @@
-### Install JWT (Json Web Token) Package
+### Install validation packages:
 ```json
-npm i jsonwebtoken @nestjs/config
+npm i class-validator class-transformer
 ```
 
 ### For psql commands:

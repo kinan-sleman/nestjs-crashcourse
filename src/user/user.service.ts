@@ -1,19 +1,53 @@
-import { CreateUserDto } from "@/user/dto/createUser";
+import { CreateUserDto } from "@/user/dto/createUser.dto";
 import { IUserResponse } from "@/user/types/userResponse.interface";
 import { UserEntity } from "@/user/user.entity";
-import { Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { sign } from "jsonwebtoken"
+import { LoginUserDto } from "@/user/dto/loginUser.dto";
+import { compare } from "bcrypt"
 
 @Injectable()
 export class UserService {
     constructor(@InjectRepository(UserEntity) private readonly userRepository: Repository<UserEntity>) { }
+    // ----- create user -----
     async createUser(CreateUserDto: CreateUserDto): Promise<IUserResponse> {
+        const userByEmail = await this.userRepository.findOne({
+            where: {
+                email: CreateUserDto.email
+            }
+        })
+        const userByUsername = await this.userRepository.findOne({
+            where: {
+                username: CreateUserDto.username
+            }
+        })
+        if (userByEmail || userByUsername) {
+            throw new HttpException('Email or username already taken', HttpStatus.UNPROCESSABLE_ENTITY)
+        }
         const newUser = new UserEntity();
         Object.assign(newUser, CreateUserDto)
         const savedUser = await this.userRepository.save(newUser);
         return this.generateUserResponse(savedUser);
+    }
+    // ----- login user -----
+    async loginUser(loginUserDto: LoginUserDto): Promise<UserEntity> {
+        const user = await this.userRepository.findOne({
+            where: {
+                email: loginUserDto.email
+            }
+        })
+        if (!user) {
+            throw new HttpException("Wrong email or password", HttpStatus.UNAUTHORIZED)
+        }
+
+        const matchedPassword = await compare(loginUserDto.password, user.password)
+        if(!matchedPassword) {
+            throw new HttpException("Wrong email or password", HttpStatus.UNAUTHORIZED)
+        }
+        delete user.password;
+        return user;
     }
     generateToken(user: UserEntity): string {
         const { id, username, email } = user
@@ -23,6 +57,7 @@ export class UserService {
         );
         return generatedToken
     }
+    // ----- generate user response -----
     generateUserResponse(user: UserEntity): IUserResponse {
         return {
             user: {

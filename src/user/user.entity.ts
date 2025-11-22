@@ -15,7 +15,7 @@ export class UserEntity {
     @Column({default: ''})
     image: string;
     @Column()
-    password: string;
+    password?: string;
     // Add method that working before Insert & Update
     @BeforeInsert()
     @BeforeUpdate()
