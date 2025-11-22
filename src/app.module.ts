@@ -4,10 +4,18 @@ import config from '@/ormconfig';
 import { TagModule } from '@/tag/tag.module';
 import { UserModule } from '@/user/user.module';
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 @Module({
-  // don't forget to import it to working fine
-  imports: [TypeOrmModule.forRoot(config),TagModule, UserModule],
+  imports: [
+    TypeOrmModule.forRoot(config),
+    // we need to add ConfigModule (when we working with .env file)
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    TagModule,
+    UserModule
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
