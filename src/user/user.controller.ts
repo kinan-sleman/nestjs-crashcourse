@@ -6,6 +6,7 @@ import { Body, Controller, Get, Post, Req, UsePipes, ValidationPipe } from "@nes
 import { IUser } from '@/user/types/user.type';
 import { UserEntity } from "@/user/user.entity";
 import type { AuthRequest } from "@/types/expressRequest.interface";
+import { User } from "@/user/decorators/user.decorator";
 
 @Controller()
 export class UserController {
@@ -23,9 +24,11 @@ export class UserController {
         return this.userService.generateUserResponse(user);
     }
     @Get("user")
-    async getCurrentUser(@Req() req: AuthRequest): Promise<any> {
-        if(req.user) {
-            return await this.userService.generateUserResponse(req.user);
+    async getCurrentUser(@User() user: UserEntity, @User('username') username): Promise<any> {
+        // this is an example of pass data to decorator
+        console.log({ user, username });
+        if (user) {
+            return await this.userService.generateUserResponse(user);
         }
     }
 }
