@@ -7,6 +7,7 @@ import { Repository } from "typeorm";
 import { sign } from "jsonwebtoken"
 import { LoginUserDto } from "@/user/dto/loginUser.dto";
 import { compare } from "bcrypt"
+import { UpdateUserDto } from "@/user/dto/updateUserDto.dto";
 
 @Injectable()
 export class UserService {
@@ -30,6 +31,12 @@ export class UserService {
         Object.assign(newUser, CreateUserDto)
         const savedUser = await this.userRepository.save(newUser);
         return this.generateUserResponse(savedUser);
+    }
+    // ----- update user -----
+    async updateUser(userId: number, updateUserDto: UpdateUserDto): Promise<UserEntity> {
+        const user = await this.findById(userId)
+        Object.assign(user, updateUserDto);
+        return await this.userRepository.save(user)
     }
     // ----- login user -----
     async loginUser(loginUserDto: LoginUserDto): Promise<UserEntity> {
