@@ -1,13 +1,21 @@
+import { AuthMiddleware } from "@/user/middlewares/auth.middleware";
 import { UserController } from "@/user/user.controller";
 import { UserEntity } from "@/user/user.entity";
 import { UserService } from "@/user/user.service";
-import { Module } from "@nestjs/common";
+import { MiddlewareConsumer, Module, NestModule, RequestMethod } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 
 @Module({
-    // we need to add it to working fine
     imports: [TypeOrmModule.forFeature([UserEntity])],
     controllers: [UserController],
-    providers: [UserService]
+    providers: [UserService],
+    // we need to add it to use service in middleware
+    exports: [UserService]
 })
-export class UserModule { }
+
+// we need to activate middleware
+export class UserModule implements NestModule {
+    configure(consumer: MiddlewareConsumer) {
+        consumer.apply(AuthMiddleware).forRoutes({ path: "*", method: RequestMethod.ALL })
+    }
+}

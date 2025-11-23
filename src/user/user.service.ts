@@ -43,12 +43,25 @@ export class UserService {
         }
 
         const matchedPassword = await compare(loginUserDto.password, user.password)
-        if(!matchedPassword) {
+        if (!matchedPassword) {
             throw new HttpException("Wrong email or password", HttpStatus.UNAUTHORIZED)
         }
         delete user.password;
         return user;
     }
+    // ----- Find By ID -----
+    async findById(id: number): Promise<UserEntity> {
+        const user = await this.userRepository.findOne({
+            where: { id },
+        })
+        console.log('User from database:', user);
+        if (!user) {
+            throw new HttpException(`User with ID: ${id} not found`, HttpStatus.NOT_FOUND)
+        }
+        delete user.password;
+        return user;
+    }
+    // ----- Generate Token -----
     generateToken(user: UserEntity): string {
         const { id, username, email } = user
         const generatedToken = sign(
@@ -59,6 +72,9 @@ export class UserService {
     }
     // ----- generate user response -----
     generateUserResponse(user: UserEntity): IUserResponse {
+        if (!user.id) {
+            throw new HttpException("User data is missing", HttpStatus.BAD_REQUEST)
+        }
         return {
             user: {
                 ...user,
