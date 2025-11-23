@@ -2,11 +2,12 @@ import { CreateUserDto } from "@/user/dto/createUser.dto";
 import { LoginUserDto } from "@/user/dto/loginUser.dto";
 import { IUserResponse } from "@/user/types/userResponse.interface";
 import { UserService } from "@/user/user.service";
-import { Body, Controller, Get, Post, Req, UsePipes, ValidationPipe } from "@nestjs/common";
+import { Body, Controller, Get, Post, Req, UseGuards, UsePipes, ValidationPipe } from "@nestjs/common";
 import { IUser } from '@/user/types/user.type';
 import { UserEntity } from "@/user/user.entity";
 import type { AuthRequest } from "@/types/expressRequest.interface";
 import { User } from "@/user/decorators/user.decorator";
+import { AuthGuard } from "@/user/guards/auth.guard";
 
 @Controller()
 export class UserController {
@@ -24,9 +25,8 @@ export class UserController {
         return this.userService.generateUserResponse(user);
     }
     @Get("user")
-    async getCurrentUser(@User() user: UserEntity, @User('username') username): Promise<any> {
-        // this is an example of pass data to decorator
-        console.log({ user, username });
+    @UseGuards(AuthGuard)
+    async getCurrentUser(@User() user: UserEntity): Promise<any> {
         if (user) {
             return await this.userService.generateUserResponse(user);
         }
