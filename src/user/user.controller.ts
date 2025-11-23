@@ -24,7 +24,6 @@ export class UserController {
     }
     @Get("user")
     async getCurrentUser(@Req() req: AuthRequest): Promise<any> {
-        console.log({ user: req.user });
         if(req.user) {
             return await this.userService.generateUserResponse(req.user);
         }

@@ -16,7 +16,6 @@ export class AuthMiddleware implements NestMiddleware {
             return;
         }
         const Token = req.headers.authorization.split(' ')[1]
-        console.log({ Token });
         try {
             const decode = verify(Token, process.env.JWT_SECRET)
             const user = await this.userService.findById(decode.id);
