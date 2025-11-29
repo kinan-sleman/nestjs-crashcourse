@@ -6,6 +6,7 @@ import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import slugify from "slugify";
 import { Repository } from "typeorm";
+import { DeleteResult } from "typeorm/browser";
 
 @Injectable()
 export class ArticleService {
@@ -25,6 +26,21 @@ export class ArticleService {
     }
 
     async getArticle(slug: string): Promise<ArticleEntity> {
+        return await this.findBySlug(slug);
+    }
+
+    async deleteArticle(slug: string, currentUserId: number): Promise<DeleteResult> {
+        const article = await this.findBySlug(slug)
+        if (article.authorId !== currentUserId) {
+            throw new HttpException("You are not author. what the hell you are going to delete?", HttpStatus.FORBIDDEN)
+        }
+        return this.articleRepository.delete({ slug })
+    }
+
+    async getAll() : Promise<ArticleEntity[]>{
+        return await this.articleRepository.find()
+    }
+    async findBySlug(slug: string): Promise<ArticleEntity> {
         const article = await this.articleRepository.findOne({
             where: {
                 slug
