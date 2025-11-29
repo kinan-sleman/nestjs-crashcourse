@@ -2,6 +2,7 @@ import { ArticleEntity } from "@/article/article.entity";
 import { CreateArticleDto } from "@/article/dto/createArticle.dto";
 import { UpdateArticleDto } from "@/article/dto/updateArticle.dto";
 import { IArticleResponse } from "@/article/types/articles.interfacle";
+import { IArticlesResopnse } from "@/article/types/articlesResponse.interface";
 import { UserEntity } from "@/user/user.entity";
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -13,7 +14,9 @@ import { DeleteResult } from "typeorm/browser";
 export class ArticleService {
     constructor(
         @InjectRepository(ArticleEntity)
-        private readonly articleRepository: Repository<ArticleEntity>
+        private readonly articleRepository: Repository<ArticleEntity>,
+        @InjectRepository(UserEntity)
+        private readonly userRepository: Repository<UserEntity>
     ) { }
 
     async createArticle(user: UserEntity, createArticleDto: CreateArticleDto) {
@@ -50,14 +53,6 @@ export class ArticleService {
         }
         return this.articleRepository.delete({ slug })
     }
-
-    async getAll(currentUserId): Promise<ArticleEntity[]> {
-        return await this.articleRepository.find({
-            where: {
-                authorId: currentUserId
-            }
-        })
-    }
     async findBySlug(slug: string): Promise<ArticleEntity> {
         const article = await this.articleRepository.findOne({
             where: {
@@ -68,6 +63,51 @@ export class ArticleService {
             throw new HttpException("Article Not Found", HttpStatus.NOT_FOUND)
         }
         return article;
+    }
+
+    async findAll(query: any): Promise<IArticlesResopnse> {
+        const queryBuilder = this.articleRepository
+            .createQueryBuilder("articles")
+            .leftJoinAndSelect("articles.author", "author")
+        // filter by tag
+        if (query.tag) {
+            queryBuilder.andWhere('articles.tagList LIKE :tag', {
+                tag: `${query.tag}`
+            })
+        }
+        // filter by author
+        if (query.author) {
+            const author = await this.userRepository.findOne({
+                where: {
+                    username: query.author
+                }
+            })
+            if(author) {
+                queryBuilder.andWhere('articles.authorId = :id', {
+                    id: author.id
+                })
+            } else {
+                return {
+                    articles: [],
+                    articlesCount: 0,
+                }
+            }
+        }
+        const articlesCount = await queryBuilder.getCount();
+        // limit query
+        if (query.limit) {
+            queryBuilder.limit(query.limit)
+        }
+        // offset query
+        if (query.offset) {
+            queryBuilder.offset(query.offset)
+        }
+        queryBuilder.orderBy("articles.createdAt", "DESC")
+        const articles = await queryBuilder.getMany();
+        return {
+            articles,
+            articlesCount,
+        }
     }
 
     generateSlug(title: string): string {

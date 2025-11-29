@@ -3,10 +3,11 @@ import { ArticleService } from "@/article/article.service";
 import { CreateArticleDto } from "@/article/dto/createArticle.dto";
 import { UpdateArticleDto } from "@/article/dto/updateArticle.dto";
 import { IArticleResponse } from "@/article/types/articles.interfacle";
+import { IArticlesResopnse } from "@/article/types/articlesResponse.interface";
 import { User } from "@/user/decorators/user.decorator";
 import { AuthGuard } from "@/user/guards/auth.guard";
 import { UserEntity } from "@/user/user.entity";
-import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards, UsePipes, ValidationPipe } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards, UsePipes, ValidationPipe } from "@nestjs/common";
 
 @Controller("articles")
 export class ArticleController {
@@ -28,11 +29,6 @@ export class ArticleController {
         const updatedArticle = await this.articleService.updateArticle(slug, currentUserId, updateArticleDto)
         return this.articleService.generateArticleResponse(updatedArticle);
     }
-    @Get('all')
-    @UseGuards(AuthGuard)
-    async getAllArticles(@User("id") currentUserId: number): Promise<ArticleEntity[]> {
-        return await this.articleService.getAll(currentUserId)
-    }
     @Get(':slug')
     @UseGuards(AuthGuard)
     async getSingleArticle(@Param("slug") slug: string): Promise<ArticleEntity> {
@@ -42,5 +38,9 @@ export class ArticleController {
     @UseGuards(AuthGuard)
     async deleteArticle(@Param("slug") slug: string, @User('id') currentUserId: number) {
         return await this.articleService.deleteArticle(slug, currentUserId)
+    }
+    @Get()
+    async findAll(@Query() query: any): Promise<IArticlesResopnse> {
+        return await this.articleService.findAll(query);
     }
 }
