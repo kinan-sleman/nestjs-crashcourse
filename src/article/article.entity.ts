@@ -7,7 +7,7 @@ export class ArticleEntity {
     id: number;
     @Column()
     slug: string;
-    @Column({default: ""})
+    @Column({ default: "" })
     description: string;
     @Column({ default: "" })
     title: string;
@@ -23,7 +23,8 @@ export class ArticleEntity {
     favoritesCount: number;
     @Column()
     authorId: number;
-    @ManyToOne(() => UserEntity, (user) => user.articles)
+    // by eager true, this relation with always loaded
+    @ManyToOne(() => UserEntity, (user) => user.articles, { eager: true })
     @JoinColumn({ name: "authorId" })
     author: UserEntity;
     @BeforeUpdate()

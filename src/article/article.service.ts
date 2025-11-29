@@ -1,5 +1,6 @@
 import { ArticleEntity } from "@/article/article.entity";
 import { CreateArticleDto } from "@/article/dto/createArticle.dto";
+import { UpdateArticleDto } from "@/article/dto/updateArticle.dto";
 import { IArticleResponse } from "@/article/types/articles.interfacle";
 import { UserEntity } from "@/user/user.entity";
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
@@ -14,6 +15,7 @@ export class ArticleService {
         @InjectRepository(ArticleEntity)
         private readonly articleRepository: Repository<ArticleEntity>
     ) { }
+
     async createArticle(user: UserEntity, createArticleDto: CreateArticleDto) {
         const article = new ArticleEntity();
         Object.assign(article, createArticleDto)
@@ -22,6 +24,18 @@ export class ArticleService {
         }
         article.slug = this.generateSlug(article.title)
         article.author = user
+        return await this.articleRepository.save(article);
+    }
+
+    async updateArticle(slug: string, currentUserId: number, updateArticleDto: UpdateArticleDto) {
+        const article = await this.findBySlug(slug);
+        if (article.authorId !== currentUserId) {
+            throw new HttpException("You are not author. what the hell you are going to update?", HttpStatus.FORBIDDEN)
+        }
+        if (article.title) {
+            article.slug = this.generateSlug(article.title)
+        }
+        Object.assign(article, updateArticleDto)
         return await this.articleRepository.save(article);
     }
 
@@ -37,8 +51,12 @@ export class ArticleService {
         return this.articleRepository.delete({ slug })
     }
 
-    async getAll() : Promise<ArticleEntity[]>{
-        return await this.articleRepository.find()
+    async getAll(currentUserId): Promise<ArticleEntity[]> {
+        return await this.articleRepository.find({
+            where: {
+                authorId: currentUserId
+            }
+        })
     }
     async findBySlug(slug: string): Promise<ArticleEntity> {
         const article = await this.articleRepository.findOne({
