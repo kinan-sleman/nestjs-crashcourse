@@ -1,5 +1,6 @@
 import { AppController } from '@/app.controller';
 import { AppService } from '@/app.service';
+import { ArticleModule } from '@/article/article.module';
 import config from '@/ormconfig';
 import { TagModule } from '@/tag/tag.module';
 import { UserModule } from '@/user/user.module';
@@ -13,6 +14,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    ArticleModule,
     TagModule,
     UserModule
   ],

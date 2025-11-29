@@ -1,6 +1,26 @@
-### Install validation packages:
+### install slugify package to generate slug:
 ```json
-npm i class-validator class-transformer
+npm i slugify
+```
+### CREATE ARTICLES ENTITY:
+```json
+npm run migration:generate --name=AddArticlesEntity
+```
+### Add Author Article Relationship:
+```json
+npm run migration:generate --name=AddAuthorArticleRelation
+```
+### Add default value for article description:
+```json
+npm run migration:generate --name=AddDefaultValueForArticleDescription
+```
+### Add default value for article body:
+```json
+npm run migration:generate --name=AddDefaultValueForArticleBody
+```
+### Add default value for article title:
+```json
+npm run migration:generate --name=AddDefaultValueForArticleTitle
 ```
 
 ### For psql commands:
