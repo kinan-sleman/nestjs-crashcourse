@@ -40,8 +40,8 @@ export class ArticleController {
         return await this.articleService.deleteArticle(slug, currentUserId)
     }
     @Get()
-    async findAll(@Query() query: any): Promise<IArticlesResopnse> {
-        return await this.articleService.findAll(query);
+    async findAll(@User("id") currentUserId: number, @Query() query: any): Promise<IArticlesResopnse> {
+        return await this.articleService.findAll(query, currentUserId);
     }
 
     @Post(":slug/favorite")

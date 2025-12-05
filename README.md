@@ -2,7 +2,7 @@
 ```json
 npm run migration:generate --name=AddUserFavoritesRelation
 ```
-
+4:20:00
 ### For psql commands:
 #### Open database:
 ```json

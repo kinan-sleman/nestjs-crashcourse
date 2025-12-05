@@ -65,7 +65,7 @@ export class ArticleService {
         return article;
     }
 
-    async findAll(query: any): Promise<IArticlesResopnse> {
+    async findAll(query: any, currentUserId: number): Promise<IArticlesResopnse> {
         const queryBuilder = this.articleRepository
             .createQueryBuilder("articles")
             .leftJoinAndSelect("articles.author", "author")
@@ -93,6 +93,23 @@ export class ArticleService {
                 }
             }
         }
+        if (query.favorited) {
+            const author: UserEntity | null = await this.userRepository.findOne({
+                where: {
+                    username: query.favorited
+                },
+                relations: ['favorites']
+            })
+            if (!author || author?.favorites?.length === 0) {
+                return {
+                    articles: [],
+                    articlesCount: 0,
+                }
+            }
+            const favoriteIds = author?.favorites.map((article) => article.id)
+            console.log({ favoriteIds })
+            queryBuilder.andWhere("articles.id IN (:...ids)", { ids: favoriteIds })
+        }
         const articlesCount = await queryBuilder.getCount();
         // limit query
         if (query.limit) {
@@ -102,10 +119,26 @@ export class ArticleService {
         if (query.offset) {
             queryBuilder.offset(query.offset)
         }
+        let userFavoritedIds: number[] = [];
+        if (currentUserId) {
+            const currentUser = await this.userRepository.findOne({
+                where: {
+                    id: currentUserId
+                },
+                relations: ['favorites']
+            })
+            userFavoritedIds = currentUser ?
+                currentUser.favorites.map((favorite) => favorite.id)
+                : []
+        }
         queryBuilder.orderBy("articles.createdAt", "DESC")
         const articles = await queryBuilder.getMany();
+        const articlesWithFavorited = articles.map((article) => {
+            const favorited = userFavoritedIds.includes(article.id)
+            return {...article, favorited}
+        })
         return {
-            articles,
+            articles: articlesWithFavorited,
             articlesCount,
         }
     }
@@ -137,7 +170,7 @@ export class ArticleService {
     }
 
     async removeFromFavorites(currentUserId: number, slug: string): Promise<IArticleResponse> {
-        console.log({slug})
+        console.log({ slug })
         const currentUser = await this.userRepository.findOne({
             where: {
                 id: currentUserId
