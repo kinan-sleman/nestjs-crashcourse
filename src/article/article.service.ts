@@ -3,6 +3,7 @@ import { CreateArticleDto } from "@/article/dto/createArticle.dto";
 import { UpdateArticleDto } from "@/article/dto/updateArticle.dto";
 import { IArticleResponse } from "@/article/types/articles.interfacle";
 import { IArticlesResopnse } from "@/article/types/articlesResponse.interface";
+import { FollowEneity } from "@/profile/follow.entity";
 import { UserEntity } from "@/user/user.entity";
 import { UserService } from "@/user/user.service";
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
@@ -18,6 +19,8 @@ export class ArticleService {
         private readonly articleRepository: Repository<ArticleEntity>,
         @InjectRepository(UserEntity)
         private readonly userRepository: Repository<UserEntity>,
+        @InjectRepository(FollowEneity)
+        private readonly followRepository: Repository<FollowEneity>,
         private readonly userService: UserService
     ) { }
 
@@ -30,6 +33,41 @@ export class ArticleService {
         article.slug = this.generateSlug(article.title)
         article.author = user
         return await this.articleRepository.save(article);
+    }
+
+    async getFeed(currentUserId: number, query: any): Promise<IArticlesResopnse> {
+        const follows = await this.followRepository.find({
+            where: {
+                followerId: currentUserId
+            }
+        })
+        const followingIds = follows.map((follow) => follow.followingId)
+
+        if (follows.length === 0) {
+            return {
+                articles: [],
+                articlesCount: 0
+            }
+        }
+        const queryBuilder = this.articleRepository.createQueryBuilder('articles')
+            .leftJoinAndSelect('articles.author', 'author')
+
+        queryBuilder.andWhere('articles.authorId IN (:...followingIds)', {
+            followingIds,
+        })
+        if(query.limit) {
+            queryBuilder.limit(query.limit)
+        }
+        if(query.offset) {
+            queryBuilder.offset(query.offset)
+        }
+        const articlesCount = await queryBuilder.getCount();
+        const articles = await queryBuilder.getMany();
+
+        return {
+            articles,
+            articlesCount
+        };
     }
 
     async updateArticle(slug: string, currentUserId: number, updateArticleDto: UpdateArticleDto) {

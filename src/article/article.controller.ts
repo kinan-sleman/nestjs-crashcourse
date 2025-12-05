@@ -22,6 +22,11 @@ export class ArticleController {
         const savedArticle = await this.articleService.createArticle(user, createArticleDto)
         return this.articleService.generateArticleResponse(savedArticle);
     }
+    @Get("feed")
+    @UseGuards(AuthGuard)
+    async getUsersFeed(@User('id') currentUserId: number, @Query() query: any): Promise<IArticlesResopnse> {
+        return await this.articleService.getFeed(currentUserId, query)
+    }
     @Put(":slug")
     @UsePipes(new ValidationPipe())
     @UseGuards(AuthGuard)
