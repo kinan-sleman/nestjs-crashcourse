@@ -110,14 +110,13 @@ export class ArticleService {
         }
     }
 
-    async addToFavorite(currentUserId, slug): Promise<IArticleResponse> {
+    async addToFavorite(currentUserId: number, slug: string): Promise<IArticleResponse> {
         const currentUser = await this.userRepository.findOne({
             where: {
                 id: currentUserId
             },
-            // in this line we can get favorites relationship
             relations: ['favorites']
-        }) 
+        })
         if (!currentUser) {
             throw new HttpException(`User with ID: ${currentUserId} not found`, HttpStatus.NOT_FOUND)
         }
@@ -131,6 +130,35 @@ export class ArticleService {
         if (isNotFavorite) {
             currentArticle.favoritesCount++
             currentUser.favorites.push(currentArticle)
+            await this.articleRepository.save(currentArticle)
+            await this.userRepository.save(currentUser)
+        }
+        return this.generateArticleResponse(currentArticle)
+    }
+
+    async removeFromFavorites(currentUserId: number, slug: string): Promise<IArticleResponse> {
+        console.log({slug})
+        const currentUser = await this.userRepository.findOne({
+            where: {
+                id: currentUserId
+            },
+            relations: ['favorites']
+        })
+        if (!currentUser) {
+            throw new HttpException(`User with ID: ${currentUserId} not found`, HttpStatus.NOT_FOUND)
+        }
+        const currentArticle = await this.findBySlug(slug)
+        if (!currentUser.favorites) {
+            currentUser.favorites = []
+        }
+        const isFavorite = currentUser.favorites.find(
+            (article) => article.slug === currentArticle.slug
+        )
+        if (isFavorite) {
+            currentArticle.favoritesCount--
+            currentUser.favorites = currentUser.favorites.filter(
+                (article) => article.slug !== currentArticle.slug
+            )
             await this.articleRepository.save(currentArticle)
             await this.userRepository.save(currentUser)
         }
