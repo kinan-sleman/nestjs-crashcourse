@@ -48,6 +48,18 @@ export class ProfileService {
     return { ...followingProfile, following: true }
   }
 
+  async unfollowProfile(currentUserId: number, username: string): Promise<ProfileType> {
+    const followingProfile = await this.userService.findByUsername(username)
+    if (followingProfile.id === currentUserId) {
+      throw new HttpException("You can't unfollow yourself!", HttpStatus.BAD_REQUEST)
+    }
+    await this.followRespository.delete({
+      followerId: currentUserId,
+      followingId: followingProfile.id
+    })
+    return { ...followingProfile, following: false }
+  }
+
   generateProfileResopnse(profile: ProfileType): IProfileResponse {
     delete profile?.password;
     delete profile?.email;
