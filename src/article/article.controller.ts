@@ -43,4 +43,10 @@ export class ArticleController {
     async findAll(@Query() query: any): Promise<IArticlesResopnse> {
         return await this.articleService.findAll(query);
     }
+
+    @Post(":slug/favorite")
+    @UseGuards(AuthGuard)
+    async addToFavorite(@User("id") currentUserId: number, @Param('slug') slug: string): Promise<IArticleResponse> {
+        return await this.articleService.addToFavorite(currentUserId, slug)
+    }
 }
