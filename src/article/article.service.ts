@@ -4,6 +4,7 @@ import { UpdateArticleDto } from "@/article/dto/updateArticle.dto";
 import { IArticleResponse } from "@/article/types/articles.interfacle";
 import { IArticlesResopnse } from "@/article/types/articlesResponse.interface";
 import { UserEntity } from "@/user/user.entity";
+import { UserService } from "@/user/user.service";
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import slugify from "slugify";
@@ -16,7 +17,8 @@ export class ArticleService {
         @InjectRepository(ArticleEntity)
         private readonly articleRepository: Repository<ArticleEntity>,
         @InjectRepository(UserEntity)
-        private readonly userRepository: Repository<UserEntity>
+        private readonly userRepository: Repository<UserEntity>,
+        private readonly userService: UserService
     ) { }
 
     async createArticle(user: UserEntity, createArticleDto: CreateArticleDto) {
@@ -77,11 +79,7 @@ export class ArticleService {
         }
         // filter by author
         if (query.author) {
-            const author = await this.userRepository.findOne({
-                where: {
-                    username: query.author
-                }
-            })
+            const author = await this.userService.findByUsername(query.author)
             if (author) {
                 queryBuilder.andWhere('articles.authorId = :id', {
                     id: author.id
@@ -94,12 +92,7 @@ export class ArticleService {
             }
         }
         if (query.favorited) {
-            const author: UserEntity | null = await this.userRepository.findOne({
-                where: {
-                    username: query.favorited
-                },
-                relations: ['favorites']
-            })
+            const author = await this.userService.findByUsernameWithFavorites(query.favorited)
             if (!author || author?.favorites?.length === 0) {
                 return {
                     articles: [],
@@ -107,7 +100,6 @@ export class ArticleService {
                 }
             }
             const favoriteIds = author?.favorites.map((article) => article.id)
-            console.log({ favoriteIds })
             queryBuilder.andWhere("articles.id IN (:...ids)", { ids: favoriteIds })
         }
         const articlesCount = await queryBuilder.getCount();
@@ -121,12 +113,7 @@ export class ArticleService {
         }
         let userFavoritedIds: number[] = [];
         if (currentUserId) {
-            const currentUser = await this.userRepository.findOne({
-                where: {
-                    id: currentUserId
-                },
-                relations: ['favorites']
-            })
+            const currentUser = await this.userService.findByIdWithFavorites(currentUserId)
             userFavoritedIds = currentUser ?
                 currentUser.favorites.map((favorite) => favorite.id)
                 : []
@@ -135,7 +122,7 @@ export class ArticleService {
         const articles = await queryBuilder.getMany();
         const articlesWithFavorited = articles.map((article) => {
             const favorited = userFavoritedIds.includes(article.id)
-            return {...article, favorited}
+            return { ...article, favorited }
         })
         return {
             articles: articlesWithFavorited,
@@ -144,12 +131,7 @@ export class ArticleService {
     }
 
     async addToFavorite(currentUserId: number, slug: string): Promise<IArticleResponse> {
-        const currentUser = await this.userRepository.findOne({
-            where: {
-                id: currentUserId
-            },
-            relations: ['favorites']
-        })
+        const currentUser = await this.userService.findByIdWithFavorites(currentUserId)
         if (!currentUser) {
             throw new HttpException(`User with ID: ${currentUserId} not found`, HttpStatus.NOT_FOUND)
         }
@@ -170,16 +152,7 @@ export class ArticleService {
     }
 
     async removeFromFavorites(currentUserId: number, slug: string): Promise<IArticleResponse> {
-        console.log({ slug })
-        const currentUser = await this.userRepository.findOne({
-            where: {
-                id: currentUserId
-            },
-            relations: ['favorites']
-        })
-        if (!currentUser) {
-            throw new HttpException(`User with ID: ${currentUserId} not found`, HttpStatus.NOT_FOUND)
-        }
+        const currentUser = await this.userService.findByIdWithFavorites(currentUserId)
         const currentArticle = await this.findBySlug(slug)
         if (!currentUser.favorites) {
             currentUser.favorites = []

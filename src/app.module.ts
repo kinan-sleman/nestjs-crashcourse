@@ -7,6 +7,7 @@ import { UserModule } from '@/user/user.module';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ProfileModule } from './profile/profile.module';
 @Module({
   imports: [
     TypeOrmModule.forRoot(config),
@@ -16,7 +17,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     }),
     ArticleModule,
     TagModule,
-    UserModule
+    UserModule,
+    ProfileModule
   ],
   controllers: [AppController],
   providers: [AppService],

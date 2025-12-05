@@ -3,7 +3,7 @@ import { LoginUserDto } from "@/user/dto/loginUser.dto";
 import { IUserResponse } from "@/user/types/userResponse.interface";
 import { UserService } from "@/user/user.service";
 import { Body, Controller, Get, Post, Put, Req, UseGuards, UsePipes, ValidationPipe } from "@nestjs/common";
-import { IUser } from '@/user/types/user.type';
+import { UserType } from '@/user/types/user.type';
 import { UserEntity } from "@/user/user.entity";
 import type { AuthRequest } from "@/types/expressRequest.interface";
 import { User } from "@/user/decorators/user.decorator";

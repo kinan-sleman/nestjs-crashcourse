@@ -67,6 +67,41 @@ export class UserService {
         delete user.password;
         return user;
     }
+    // ----- Find By ID With Favorites -----
+    async findByIdWithFavorites(id: number): Promise<UserEntity> {
+        const user = await this.userRepository.findOne({
+            where: { id },
+            relations: ['favorites']
+        })
+        if (!user) {
+            throw new HttpException(`User with ID: ${id} not found`, HttpStatus.NOT_FOUND)
+        }
+        delete user.password;
+        return user;
+    }
+    // ----- Find By Username -----
+    async findByUsername(username: string): Promise<UserEntity> {
+        const user = await this.userRepository.findOne({
+            where: { username },
+        })
+        if (!user) {
+            throw new HttpException(`User with Username: ${username} not found`, HttpStatus.NOT_FOUND)
+        }
+        delete user.password;
+        return user;
+    }
+    // ----- Find By Username With Favorites -----
+    async findByUsernameWithFavorites(username: string): Promise<UserEntity> {
+        const user = await this.userRepository.findOne({
+            where: { username },
+            relations: ['favorites']
+        })
+        if (!user) {
+            throw new HttpException(`User with Username: ${username} not found`, HttpStatus.NOT_FOUND)
+        }
+        delete user.password;
+        return user;
+    }
     // ----- Generate Token -----
     generateToken(user: UserEntity): string {
         const { id, username, email } = user
