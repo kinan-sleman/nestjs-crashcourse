@@ -11,8 +11,8 @@ export class ProfileController {
 
   @Get(':username')
   @UseGuards(AuthGuard)
-  async getProfile(@Param("username") profileUsername: string) {
-    const profile = await this.profileService.getProfile(profileUsername)
+  async getProfile(@User("id") currentUserId: number, @Param("username") profileUsername: string) {
+    const profile = await this.profileService.getProfile(currentUserId, profileUsername)
     return this.profileService.generateProfileResopnse(profile)
   }
   @Post(':username/follow')

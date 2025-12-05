@@ -15,14 +15,22 @@ export class ProfileService {
     private readonly userService: UserService
   ) { }
 
-  async getProfile(username: string): Promise<ProfileType> {
+  async getProfile(currentUserId: number, username: string): Promise<ProfileType> {
     const profile = await this.userService.findByUsername(username);
-    return { ...profile, following: false }
+    let following = false;
+    const follow = await this.followRespository.findOne({
+      where: {
+        followerId: currentUserId,
+        followingId: profile.id
+      }
+    })
+    following = Boolean(follow)
+    return { ...profile, following }
   }
 
   async followProfile(currentUserId: number, username: string): Promise<ProfileType> {
     const followingProfile = await this.userService.findByUsername(username)
-    if(followingProfile.id === currentUserId) {
+    if (followingProfile.id === currentUserId) {
       throw new HttpException("You can't follow yourself!", HttpStatus.BAD_REQUEST)
     }
     const follow = await this.followRespository.findOne({
