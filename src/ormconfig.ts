@@ -12,6 +12,7 @@ console.log({
 const config: PostgresConnectionOptions = {
     type: 'postgres',
     host: process.env.PGHOST,
+    url: process.env.DATABASE_URL,
     port: parseInt(String(process.env.PGPORT), 10),
     username: process.env.PGUSER,
     password: process.env.PGPASSWORD,

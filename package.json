@@ -20,7 +20,8 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "dp:drop": "typeorm-ts-node-commonjs schema:drop -d src/ormconfig.ts",
     "migration:generate": "typeorm-ts-node-commonjs migration:generate -d src/ormconfig.ts src/migrations/%npm_config_name%",
-    "migration:run": "typeorm-ts-node-commonjs migration:run -d src/ormconfig.ts"
+    "migration:run": "typeorm-ts-node-commonjs migration:run -d src/ormconfig.ts",
+    "migration:run:railway": "cross-env NODE_ENV=production PGSSL=true npm run migration:run"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
