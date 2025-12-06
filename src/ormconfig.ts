@@ -20,6 +20,11 @@ const config: PostgresConnectionOptions = {
     migrationsTableName: "migrations",
     migrations: [__dirname + "/migrations/**/*.ts"],
     ssl: Boolean(process.env.PGSSL),
+    extra: process.env.PGSSL === 'true' ? {
+        ssl: {
+            rejectUnauthorized: false
+        }
+    } : {}
 }
 const AppDataSource = new DataSource(config)
 export {
