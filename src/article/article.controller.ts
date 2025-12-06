@@ -34,8 +34,6 @@ export class ArticleController {
     @ApiOperation({ summary: 'Get articles feed for current user' })
     @ApiResponse({ status: 200, description: 'Return articles feed.' })
     @ApiResponse({ status: 401, description: 'Unauthorized.' })
-    @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Limit number of articles returned (default is unlimited)' })
-    @ApiQuery({ name: 'offset', required: false, type: Number, description: 'Offset/skip number of articles (for pagination)' })
     async getUsersFeed(@User('id') currentUserId: number, @Query() query: any): Promise<IArticlesResopnse> {
         return await this.articleService.getFeed(currentUserId, query)
     }
@@ -74,6 +72,8 @@ export class ArticleController {
     @ApiOperation({ summary: 'Get all articles' })
     @ApiResponse({ status: 200, description: 'Return all articles.' })
     @ApiResponse({ status: 401, description: 'Unauthorized.' })
+    @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Limit number of articles returned (default is unlimited)' })
+    @ApiQuery({ name: 'offset', required: false, type: Number, description: 'Offset/skip number of articles (for pagination)' })
     async findAll(@User("id") currentUserId: number, @Query() query: any): Promise<IArticlesResopnse> {
         return await this.articleService.findAll(query, currentUserId);
     }
