@@ -3,20 +3,19 @@ import { PostgresConnectionOptions } from "typeorm/driver/postgres/PostgresConne
 
 const config: PostgresConnectionOptions = {
     type: 'postgres',
-    host: 'localhost',
-    port: 5432,
-    username: "postgres",
-    password: "12345678",
-    database: "blog",
+    host: process.env.PGHOST || 'localhost',
+    port: parseInt(String(process.env.PGPORT), 10) || 5432,
+    username: process.env.PGUSER || "postgres",
+    password: process.env.PGPASSWORD || "12345678",
+    database: process.env.PGDATABASE || "blog",
     entities: [__dirname + '/**/*.entity{.ts,.js}'],
-    // we need to remove synchronize , because we don't need to update database when we change entity files
-    // synchronize: true, 
-    // and we need to enable this line:
     migrationsTableName: "migrations",
-    // and we need to add path for migrations:
     migrations: [__dirname + "/migrations/**/*.ts"],
+    // required for production:
+    ssl: process.env.NODE_ENV === 'production' ? {
+        rejectUnauthorized: false,
+    } : false,
 }
-// after that we need to create datasource :
 const AppDataSource = new DataSource(config)
 export {
     AppDataSource
