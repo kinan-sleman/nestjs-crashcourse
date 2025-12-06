@@ -5,7 +5,6 @@ import { verify } from "jsonwebtoken";
 import { NextFunction } from "express";
 import { UserEntity } from "@/user/user.entity";
 
-//  Don't miss to add this, if you don't add it, the middleware can't working with service (User Service).
 @Injectable()
 export class AuthMiddleware implements NestMiddleware {
     constructor(private readonly userService: UserService) { }

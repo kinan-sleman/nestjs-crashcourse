@@ -1,14 +1,6 @@
 import { DataSource } from "typeorm";
 import { PostgresConnectionOptions } from "typeorm/driver/postgres/PostgresConnectionOptions.js";
 
-console.log({
-    PGHOST: process.env.PGHOST,
-    PGPORT: process.env.PGPORT,
-    PGUSER: process.env.PGUSER,
-    PGPASSWORD: process.env.PGPASSWORD,
-    PGDATABASE: process.env.PGDATABASE,
-    production: process.env.NODE_ENV,
-})
 const config: PostgresConnectionOptions = {
     type: 'postgres',
     host: process.env.PGHOST,
