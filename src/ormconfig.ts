@@ -7,6 +7,7 @@ console.log({
     PGUSER: process.env.PGUSER || (process.env.NODE_ENV !== 'production' ? "postgres" : undefined),
     PGPASSWORD: process.env.PGPASSWORD,
     PGDATABASE: process.env.PGDATABASE,
+    production: process.env.NODE_ENV,
 })
 const config: PostgresConnectionOptions = {
     type: 'postgres',
